@@ -1,0 +1,13 @@
+Package: locusCCA.CVRtesting
+Type: Package
+Title: Low-Rank CCA Model with CVR Testing
+Version: 0.1.0
+Authors@R: c(person("Guangming Yang", email="gyang52@emory.edu", role=c("aut", "cre")))
+Description: Implements low-rank CCA model and a CVR-based testing procedure.
+License: GPL-3
+Depends: R (>= 3.5.0)
+Imports: PMA, MASS, tibble, dplyr, lattice,  glmnet, CCA, far, ggplot2,lattice,gridExtra,reshape2
+Suggests: testthat, devtools, roxygen2
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.1
