@@ -7,7 +7,7 @@
 Locus_CCA(
   X,
   Y,
-  voxel,
+  node,
   m,
   lambda,
   gamma = 2.1,
