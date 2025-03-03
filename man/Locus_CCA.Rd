@@ -22,6 +22,8 @@ Locus_CCA(
 
 \item{Y}{A matrix of response variables (n x m).}
 
+\item{node}{An integer indicating the node size.}
+
 \item{m}{An integer specifying the number of canonical components.}
 
 \item{lambda}{A numeric value regulating the penalty term applied to canonical weights on brain connectivity.}
@@ -39,8 +41,6 @@ Locus_CCA(
 \item{silent}{Logical. If TRUE, suppresses output messages (default = FALSE).}
 
 \item{tol}{A numeric tolerance level for convergence (default = 1e-3).}
-
-\item{node}{An integer indicating the node size.}
 }
 \value{
 A list containing:
