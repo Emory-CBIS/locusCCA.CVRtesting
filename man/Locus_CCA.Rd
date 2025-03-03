@@ -9,7 +9,7 @@ Locus_CCA(
   Y,
   node,
   m,
-  lambda,
+  rho,
   gamma = 2.1,
   penalt = "L1",
   proportion = 0.9,
@@ -26,7 +26,7 @@ Locus_CCA(
 
 \item{m}{An integer specifying the number of canonical components.}
 
-\item{lambda}{A numeric value regulating the penalty term applied to canonical weights on brain connectivity.}
+\item{rho}{A numeric value regulating the penalty term applied to canonical weights on brain connectivity.}
 
 \item{gamma}{A numeric value (default = 2.1) used in SCAD penalty. Must be > 2.}
 
