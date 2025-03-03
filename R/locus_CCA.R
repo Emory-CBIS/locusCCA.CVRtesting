@@ -23,7 +23,7 @@
 #' \item{R}{Vector of selected rank for each canonical component.}
 #' @importFrom PMA CCA
 #' @export
-Locus_CCA <- function(X, Y, voxel, m, lambda, gamma = 2.1,
+Locus_CCA <- function(X, Y, node, m, lambda, gamma = 2.1,
                          penalt = 'L1', proportion = 0.9
                          , silent = FALSE, tol = 1e-3) {
   initial_sparse = 0.5
@@ -49,7 +49,7 @@ Locus_CCA <- function(X, Y, voxel, m, lambda, gamma = 2.1,
 
   # Low-rank approximation
   for (j in 1:m) {
-    eigenSl = eigen(Ltrinv(U[, j], V = voxel, F))
+    eigenSl = eigen(Ltrinv(U[, j], V = node, F))
     orderEigen = order(abs(eigenSl$values), decreasing = TRUE)
     for (r in 2:length(eigenSl$values)) {
       eigenset = orderEigen[1:r]
