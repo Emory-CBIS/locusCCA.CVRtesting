@@ -1,6 +1,4 @@
-<script type="text/javascript" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
+
 # LocusCCA.CVRtesting:  A Low-Rank, Sparse Canonical Correlation Analysis and Canonical Variate Regression Testing Framework for Brain Connectivity Analysis
 
 `locusCCA.CVRtesting` is an R package implementing a two-stage statistical framework (Locus-CCA + CVR testing) designed for analyzing associations between brain connectivity and cognitive, behavioral, or clinical outcomes. The approach addresses challenges inherent in brain connectome analyses such as high dimensionality and noise, providing interpretable and powerful insights into neurodevelopmental and neuropsychiatric studies.
@@ -33,42 +31,76 @@ Formally, Locus-CCA identifies $m$  canonical directions  𝐔 and 𝐕 by solvi
 
 where:
 
-- **X** is an $n \times p$ brain connectivity data matrix.
+- **X** is an $n \times p$ stacked brain connectivity data matrix, where $p = V(V-1)/2$ represents the length of the vectorized upper triangle  of connectivity matrix of size $V\times V$.
 - **Y** is an $n \times q$ matrix of clinical or cognitive variables.
 - 𝐔 and 𝐕 are canonical direction weight matrices for connectivity and clinical variables, with dimensions $p \times m$ and $q \times m$ respectively.
-- **𝐉ⱼ** and **Dⱼ** are low rank parameters, with dimensions $p \times R_j$ and $R_j \times R_j$ respectively. $R_j$ is latent rank of $j$th canonical direction on brain connectivity. 
+- **𝐉ⱼ** and **Dⱼ** are low rank parameters, with dimensions $p \times R_j$ and $R_j \times R_j$ respectively. $R_j$ is latent rank of $j$ th canonical direction on brain connectivity.
+- The function $\mathcal{L}(\cdot)$ extracts the vectorized upper-triangular portion from symmetric connectivity trait matrices.
+- $\rho_1$ is the regularization parameters penalizing the sparisty of 𝐔. 
+
+#### Method Highlights
+
+- **Low-rank factorization**:  
+  Locus-CCA employs low-rank decomposition to capture intrinsic, structured patterns within connectivity matrices. This efficiently reduces model complexity and enhances interpretability.
+
+- **Universal Sparsity Regularization**:  
+  Sparsity regularization (L1, Hardthreshold or SCAD penalties) is applied element-wise to canonical weights, ensuring robust and interpretable connectivity patterns that represent meaningful neural circuitry associated with clinical or behavioral phenotypes.
+
+- **Canonical Correlation Maximization**:  
+  Canonical directions (**XU**, **YV**) derived from Locus-CCA are optimized to achieve maximum canonical correlation, capturing the strongest possible linear relationships between brain connectivity and clinical/behavioral outcomes.
+
+### CVR Testing Method
+
+Canonical Variate Regression (CVR) Testing is a robust statistical procedure designed to evaluate the significance of canonical directions derived from Locus-CCA in predicting clinical or behavioral outcomes. Specifically, CVR testing assesses whether each identified canonical connectivity pattern (**XU**) significantly contributes to explaining variation in the univariate clinical or behavioral measures (**z**).
+
+Formally, for each canonical direction  $j \leq m$, CVR testing calculates a test statistic $T_j$:
 
 
+$$T_j = \frac{\sqrt{n}\mathbf{S}_j}{\sqrt{\mathbf{I}_j}} \xrightarrow{d} N(0,1)$$
+
+*Comprehensive and complete methodological explanations of the CVR Testing framework are described in detail in our accompanying research paper (in preparation).*
 
 
+<!--
+\mathbf{S}_j = \frac{1}{n \hat{\sigma}^2}\left(\mathbf{z}-\hat{\mathbf{z}}\right)^\top\left(\mathbf{f}_j - \hat{\mathbf{f}}_j\right),\quad
+\mathbf{I}_j = \frac{1}{n \hat{\sigma}^2}\left(\|\mathbf{f}_j\|^2 - \mathbf{f}_j^\top\hat{\mathbf{f}}_j\right),
+$$
 
-dyna-LOCUS is a fully data-driven blind signal separation method for decomposing imaging-based brain connectivity data to reveal underlying neural circuits. Specifically, dyna-LOCUS decomposes observed dFC matrics to uncover latent connectivity traits and their dynamic temporal expression profiles. By utilizing low-rank factorization, element-wise sparsity regularization on connectivity traits, and temporal smoothness penalization on trait loadings, dyna-LOCUS achieves efficient and reliable uncovery of connectivity traits underlying the dynamic brain functional connectome, characterizes temporal changes of the connectivity traits that contribute to the reconfiguration in the observed dFC, and offers an efficient way to identify whole brain dFC states.
+and
 
-dyna-LOCUS separates the observed dynamic connectivity data for the $i$ th subject at the $t$ th time window as combinations of $q$ latent connectivity sources/traits, that is: $\mathbf y_{it} = \sum_{\ell} a_{it\ell}\mathbf s_{\ell} + \mathbf e_{it}$, where $\mathbf s_{\ell} = \mathcal{L} (\mathbf S_{\ell}) \in \mathcal{R}^p$ is the upper triangular of the symmetric $\ell$ th latent connectivity source or trait, which is assumed to be independent across the $q$ traits. $\{a_{it\ell}\}$ are the mixing coefficients or trait loadings. They represent the presence or prominence of the $\ell$'s connectivity trait in $i$ th subject at time point $t$. $\mathbf e_{it}\in \mathcal{R}^p$ is an error term independent of source signals.
+- $$\mathbf{z}$$ is the observed $$n$$-dimensional clinical or behavioral outcome vector.
+- $$\hat{\mathbf{z}}$$ represents predictions from a Lasso regression of $$\mathbf{z}$$ onto the connectivity matrix $$\mathbf{X}$$.
+- $$\hat{\sigma}^2$$ is the estimated residual variance from the Lasso regression.
+- $f_j$ is the $j$ th canonical factor computed as the standardized projection of connectivity matrix onto the canonical direction:  $f_j = {XU_{.j}}$
+- $$\hat{\mathbf{f}}_j$$ represents predictions of $$\mathbf{f}_j$$ obtained by regressing $$\mathbf{f}_j$$ onto the remaining connectivity features ($$\mathbf{X}$$) via a second Lasso regression to control for collinearity among predictors.
+-->
 
-The method has the following highlights:
 
--   dyna-LOCUS models the source signals $\mathbf S_\ell$ using a low-rank structure $\mathbf X_{\ell}\mathbf D_{\ell}\mathbf X_{\ell}'$ where $\mathbf D_{\ell}$ is a diagonal matrix. This is well motivated by the observation that brain connectivity matrices often display a block-diagonal or banded structure that can be efficiently captured with a low-rank factorization. The low-rank structure leads to a significant reduction in the number of parameters, hence improving accuracy and reliability in the recovery of underlying connectivity traits. dyna-LOCUS also incorporates an adaptive rank selection approach to flexibly choose the rank for each of the connectivity source signals based on specifying tuning parameter $\rho$. The source-specific rank selection allows better accommodation of varying spatial patterns in the neural circuits across the brain.
+#### Method Highlights
 
--   The subject-time-specific trait loadings $\{\mathbf{a}_{it\ell}\}$, generated by dyna-LOCUS, characterize the temporal expression profiles of the connectivity traits. These trait loadings contain information on the temporal expression of each of the latent connectivity traits in an individual's brain connectivity.
+- **Statistical Significance Testing**:  
+  The CVR testing procedure provides formal hypothesis tests for assessing the statistical significance of each canonical variate, determining whether connectivity patterns identified by Locus-CCA significantly predict clinical or behavioral outcomes.
 
--   The learning of dyna-LOCUS is formulated as block multi-convex structure optimization problem. The optimization function is as below, where $\phi$ is a tuning parameter for the sparsity term, and $\lambda$ is the temporal smoothness term. dyna-LOCUS incorporates efficient updating algorithms for the estimation.
+- **Account for High Dimensionality and Edge Dependence**:  
+  CVR transforms the high-dimensional testing challenge into testing an aggregated scalar statistic, effectively accounting for dependency structures among brain connectivity edges.
 
-<img src="fig/equation.png" width="750" align="center"/>
+- **Reduced Multiple Testing Burden**:  
+  By evaluating canonical variates rather than individual connectivity edges, CVR greatly reduces multiple comparison issues, enhancing statistical power and interpretability of findings.
 
+By integrating Locus-CCA with CVR testing, this approach provides a comprehensive, statistically rigorous framework for linking complex brain connectivity data to meaningful clinical and behavioral phenotypes.
+
+
+### Functions Overview
 The structure of the package is as follows, and detailed descriptions of the function arguments are provided in the section below:
 
 -   **Main Function:**
-    -   `dynaLOCUS()`: performs dyna-LOCUS decomposition.
+    -   `Locus_CCA`: performs Locus_CCA on brain connectivity and clinical/behavorial variables from the same group of subjects.
+    -  `CVR_testing`: Peforms CVR testing based on the results from Locus_CCA.
 -   **Tuning Parameter Selection:**
-    -   `bic_selection()`: selects the tuning parameters $\phi$ and $\rho$ based on our proposed BIC-like criterion.
-    -   `lambda_selection()`: selects the tuning parameter $\lambda$ based on the goodness-of-fit criterion.
--   **Analysis Functions:**
-    -   `reliability_index()`: calculates the reliability index and reproducibility of connectivity traits based on different values of $q$.
-    -   `energy_var_cal()`: calculates the energy and variation of the connectivity traits as defined in the paper after decomposition.
-    -   `ccf_calculation()`: calculates the cross-correlation function (CCF) between extracted trait pairs.
-    -   `dFC_states()`: generates whole-brain dynamic functional connectivity (DFC) states based on dyna-LOCUS decomposition results.
-
+    -   `bic_cal()`: selects the tuning parameters $\rho_1$.
+-   **Helper Functions:**
+    -   `Ltrinv` and `Ltrans`: transform the brain connectivity to vectorized upper triangle and transform it back.
+    - `plot_conn`:   both 
 ## III. Detailed Descriptions of the Functions
 
 ### 1. dynaLOCUS function
