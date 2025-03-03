@@ -29,7 +29,7 @@ test_that("Low_rank_CCA runs correctly with real dataset", {
   Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
 
   # Run Low_rank_CCA on real data
-  result <- Locus_CCA(X, Y, voxel = 264, m = m, lambda = 0.008,
+  result <- Locus_CCA(X, Y, voxel = 264, m = m, rho = 0.008,
                          penalt = "Hardthreshold", proportion = 0.95,
                           silent = FALSE, tol = 1e-3)
 
@@ -66,7 +66,7 @@ test_that("score_testing runs correctly with real dataset", {
   fy <- fx + matrix(rnorm(n * m, 0, 0.6), nrow = n)
   X <- 500 * fx[, 1:m] %*% (ginv(U)) + matrix(rnorm(n * p, 0, 0.01), nrow = n)
   Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
-  result <- Locus_CCA(X, Y, voxel = 264, m = m, lambda = 0.008,
+  result <- Locus_CCA(X, Y, voxel = 264, m = m, rho = 0.008,
                       penalt = "Hardthreshold", proportion = 0.95,
                       silent = FALSE, tol = 1e-3)
 
