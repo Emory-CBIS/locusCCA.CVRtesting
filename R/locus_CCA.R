@@ -6,7 +6,7 @@
 #' @param Y A matrix of response variables (n x m).
 #' @param node An integer indicating the node size.
 #' @param m An integer specifying the number of canonical components.
-#' @param lambda A numeric value regulating the penalty term applied to canonical weights on brain connectivity.
+#' @param rho A numeric value regulating the penalty term applied to canonical weights on brain connectivity.
 #' @param gamma A numeric value (default = 2.1) used in SCAD penalty. Must be > 2.
 #' @param penalt A string specifying the penalty type. Options:
 #'        - "Hardthreshold": Applies hard thresholding.
@@ -23,7 +23,7 @@
 #' \item{R}{Vector of selected rank for each canonical component.}
 #' @importFrom PMA CCA
 #' @export
-Locus_CCA <- function(X, Y, node, m, lambda, gamma = 2.1,
+Locus_CCA <- function(X, Y, node, m, rho, gamma = 2.1,
                          penalt = 'L1', proportion = 0.9
                          , silent = FALSE, tol = 1e-3) {
   initial_sparse = 0.5
@@ -112,16 +112,16 @@ Locus_CCA <- function(X, Y, node, m, lambda, gamma = 2.1,
       }
       for (j in 1:m) {
         U_thresh[, j] = U_thresh[, j] / sd(U_thresh[, j]) * sd1[j]
-        U_thresh[, j] = SCAD_func(U_thresh[, j], lambda_ch = lambda, gamma = gamma)
+        U_thresh[, j] = SCAD_func(U_thresh[, j], lambda_ch = rho, gamma = gamma)
       }
     } else if (penalt == "Hardthreshold") {
-      U_thresh = U * (abs(U) >= lambda)
+      U_thresh = U * (abs(U) >= rho)
       for (j in 1:m) {
         if (sd(U_thresh[, j]) == 0) next
         U_thresh[, j] = U_thresh[, j] / sd(U_thresh[, j]) * sd1[j]
       }
     } else if (penalt == "L1") {
-      U_thresh = sign(U) * (abs(U) - lambda) * (abs(U) >= lambda)
+      U_thresh = sign(U) * (abs(U) - rho) * (abs(U) >= rho)
       for (j in 1:m) {
         U_thresh[, j] = U_thresh[, j] / sd(U_thresh[, j]) * sd1[j]
       }
