@@ -31,7 +31,7 @@ Formally, Locus-CCA identifies $m$  canonical directions  𝐔 and 𝐕 by solvi
 
 where:
 
-- **X** is an $n \times p$ stacked brain connectivity data matrix, where $p = V(V-1)/2$ represents the length of the vectorized upper triangle  of connectivity matrix of size $V\times V$.
+- **X** is an $n \times p$ stacked brain connectivity data matrix, where $p = node(*node-1)/2$ represents the length of the vectorized upper triangle  of connectivity matrix of size $node \times node$.
 - **Y** is an $n \times q$ matrix of clinical or cognitive variables.
 - 𝐔 and 𝐕 are canonical direction weight matrices for connectivity and clinical variables, with dimensions $p \times m$ and $q \times m$ respectively.
 - **𝐉ⱼ** and **Dⱼ** are low rank parameters, with dimensions $p \times R_j$ and $R_j \times R_j$ respectively. $R_j$ is latent rank of $j$ th canonical direction on brain connectivity.
@@ -111,9 +111,9 @@ Locus_CCA(X, Y, node, m, rho, gamma = 2.1,
                          , silent = FALSE, tol = 1e-3)
 ```
 
--   `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network. To construct `X` from connectivity matrices, suppose each matrix is a $node \times node$ symmetric matrix. We use the `Ltrans()` function to extract the upper triangular elements of each connectivity matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across  subjects to obtain the group connectivity data `X`, which has dimensions $n \times p$.
+-   `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network. To construct `X` from connectivity matrices, suppose each matrix is a $node \times node$ symmetric matrix. We use the `Ltrans()` function to extract the upper triangular elements of each connectivity matrix and convert them into a row vector of length $p = (node-1)*node/{2}$. We then concatenate these vectors across  subjects to obtain the group connectivity data `X`, which has dimensions $n \times p$.
 -   `Y`: Group-level clinical/behavioral subscale scores for the same subjects in `X`, the dimension is $n\times q$.
--   `node`: The number of nodes. Note that $p$ needs to be equal to $\frac{(node-1)node}{2}$.
+-   `node`: The number of nodes. Note that $p$ needs to be equal to $(node-1)*node/{2}$.
 -   `m`: The number of canonical correlation components to extract.
 -   `rho`: A tuning parameter for the element-wise penalty on 𝐔.
 -   `gamma`: A tuning parameter only used if  SCAD penalty is used, default to be 2.1.
@@ -122,11 +122,12 @@ Locus_CCA(X, Y, node, m, rho, gamma = 2.1,
 -  `silent`: If `FALSE`, print out the training progress. Defaults to `FALSE`.
 -   `tol`: A number describing the tolerance for change on parameters 𝐔 and 𝐕  .
 
-The `dynaLOCUS` function serves as the primary function in the algorithm, implementing the novel decomposition method for brain network dynamic connectivity matrices using low-rank structure with uniform sparsity and temporal group lasso. Users can provide the group-level concatenated dynamic connectivity data as input, along with specifying parameters such as the number of connectivity traits to extract, the number of nodes under consideration, and the total number of subjects in the study, etc. The output of the `dynaLOCUS` function is a list comprising 3 components:
+The `Locus_CCA` function serves as the primary function in the algorithm, implementing the novel CCA method for investigating the association between brain network connectivity matrices and clinical/behavioral subscale scores using low-rank structure with uniform sparsity. Users can provide the group-level concatenated connectivity data and clinical/behavioral subscale as input, along with specifying parameters such as the number of connectivity traits to extract, the number of nodes under consideration, etc. The output of the `Locus_CCA` function is a list comprising 4 components:
 
--   `A`: The mixing matrix ${a_{itl}}$ of dimension $NT \times q$.
--   `S`: The subnetworks extracted, with a dimension of $q \times p$, where $p$ is the number of edges. Each row in S represents a vectorized subnetwork, generated using the `Ltrans()` function in the package.
--   `theta`: A list of length $q$, where `theta[[i]]` contains the symmetric low-rank decomposition of $i$th subnetwork.
+-   `U`: The canonical correlation directions on brain connectivity with  dimension $p \times m$.
+-   `V`: The canonical correlation directions on subscale scores with  dimension $q \times m$.
+-   `CC`: A m by m matrix. Canonical correlations between the each corresponding projection, i.e the correlation between columns in $XU$ and $YV$.
+-   `R`: A list of rank $R_j$, where `R[j]` contains the rank of the $i$th sub connectivity matrix.
 
 ### 2. bic_selection function
 
