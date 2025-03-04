@@ -2,8 +2,8 @@
 #'
 #' Conducts a statistical test to assess the significance of extracted canonical components in characterizing some responses related to mental health.
 #'
-#' @param U A numeric matrix of canonical weights (p x m).
-#' @param X A numeric matrix of predictor variables (n x p).
+#' @param U A numeric matrix of canonical weights (p x m), or results form Locus_CCA.
+#' @param X A matrix of stacked brain connectivity of n subjects (n x p).
 #' @param z A numeric response vector (n x 1).
 #' @param lambda1 A numeric value for Lasso penalty in regression. If `NULL`, it is determined using cross-validation.
 #' @param lambda2 A numeric value for thresholding. If `NULL`, it is  determined by our procedure.
