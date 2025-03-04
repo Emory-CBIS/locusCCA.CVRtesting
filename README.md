@@ -100,32 +100,27 @@ The structure of the package is as follows, and detailed descriptions of the fun
     -   `bic_cal()`: selects the tuning parameters $\rho_1$.
 -   **Helper Functions:**
     -   `Ltrinv` and `Ltrans`: transform the brain connectivity to vectorized upper triangle and transform it back.
-    - `plot_conn`:   both 
+    - `plot_conn`:  plots the canonical weights on brain connectivity in the form of heatmap for adjancency connectivity matrix.
 ## III. Detailed Descriptions of the Functions
 
-### 1. dynaLOCUS function
+### 1. Locus_CCA function
 
 ```         
-dynaLOCUS(Y, q, V, n_subject, preprocess = TRUE, penalty_S = "L1", phi = 2, rho = 0.9, 
-penalty_A = TRUE, lambda = 0.1, maxIteration = 100, speed_up = FALSE, espli1 = 0.01, espli2 = 0.05, silent = TRUE, demean = TRUE)
+Locus_CCA(X, Y, node, m, rho, gamma = 2.1,
+                         penalt = 'L1', proportion = 0.9
+                         , silent = FALSE, tol = 1e-3)
 ```
 
--   `Y`: Group-level dynamic connectivity data represented as a matrix of dimension $NT \times p$, where $NT$ denotes the number of subjects multiplied by the number of time points, and $p$ represents the number of edges in the connectivity network. To construct `Y` from dFC matrices, suppose we have $T$ dFC matrices from each of the $N$ subjects, where each matrix is a $V \times V$ symmetric matrix. We use the `Ltrans()` function to extract the upper triangular elements of each dFC matrix and convert them into a row vector of length $p = \frac{(V-1)V}{2}$. We then concatenate these vectors across time and subjects to obtain the group dFC data `Y`, which has dimensions $NT \times p$.
--   `q`: The number of connectivity traits to extract.
--   `V`: The number of nodes. Note that $p$ needs to be equal to $\frac{(V-1)V}{2}$.
--   `n_subject`: The total number of subjects in the study.
--   `preprocess`: If `TRUE`, the concatenated group-level connectivity data will be preprocessed. Defaults to `TRUE`.
--   `penalty_S`: The option for the penalization function for the sparsity regularization for the connectivity traits. Users can choose `"NULL"`, `"L1"`, or `"SCAD"` (smoothly clipped absolute deviation), introduced by [Fan and Li, 2001](https://www.jstor.org/stable/3085904). Defaults to `"L1"`.
--   `phi`: A tuning parameter for the element-wise penalty on `S`. Defaults to 2.
--   `rho`: A proportional tuning parameter ranging from 0 to 1 for the adaptive selection method to determine the number of ranks for modeling each connectivity trait. The value of `rho` represents the closeness of the connectivity traits estimated with and without the low-rank structure. A higher value of `rho` will lead to a higher rank. Defaults to 0.9.
--   `penalty_A`: The option for the temporal smoothness regularization for the trait loadings. If `TRUE`, a temporal smoothness penalty is included in the optimization function to encourage similarity in the trait loadings in adjacent time windows. Defaults to `TRUE`.
--   `lambda`: A numeric tuning parameter for the temporal smooth lasso penalty on `A`. Defaults to 0.1.
--   `maxIteration`: The maximum number of iterations. Defaults to 100.
--   `speed_up`: If `FALSE` (Default), use the Node-rotation algorithm (see Algorithm 1 in Appendix A of the paper) for learning dyna-LOCUS. If `TRUE`, use the Alternative algorithm (see Supplementary Materials Section 7) to further speed up the computation for learning dyna-LOCUS.
--   `espli1`: A number describing the tolerance for change on `A`.
--   `espli2`: A number describing the tolerance for change on `S`.
--   `demean`: If `TRUE`, demean each column of the group-level connectivity matrix `Y`. Defaults to `TRUE`.
--   `silent`: If `FALSE`, print out the penalty added on `A` and `S`. Defaults to `TRUE`.
+-   `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network. To construct `X` from connectivity matrices, suppose each matrix is a $node \times node$ symmetric matrix. We use the `Ltrans()` function to extract the upper triangular elements of each connectivity matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across  subjects to obtain the group connectivity data `X`, which has dimensions $n \times p$.
+-   `Y`: Group-level clinical/behavioral subscale scores for the same subjects in `X`, the dimension is $n\times q$.
+-   `node`: The number of nodes. Note that $p$ needs to be equal to $\frac{(node-1)node}{2}$.
+-   `m`: The number of canonical correlation components to extract.
+-   `rho`: A tuning parameter for the element-wise penalty on 𝐔.
+-   `gamma`: A tuning parameter only used if  SCAD penalty is used, default to be 2.1.
+-   `penalt`: The option for the penalization function for the sparsity regularization for the canonical correlation directions on brain connectivity. Users can choose `"NULL"`,  `"Hardthreshold"`, `"L1"`, or `"SCAD"` (smoothly clipped absolute deviation), introduced by [Fan and Li, 2001](https://www.jstor.org/stable/3085904). Defaults to `"L1"`.
+-   `proportion`: A proportional tuning parameter ranging from 0 to 1 to determine the number of ranks for modeling each connectivity trait. The value of `rho` represents the closeness of the connectivity traits estimated with and without the low-rank structure. A higher value of `rho` will lead to a higher rank. Defaults to 0.9.
+-  `silent`: If `FALSE`, print out the training progress. Defaults to `FALSE`.
+-   `tol`: A number describing the tolerance for change on parameters 𝐔 and 𝐕  .
 
 The `dynaLOCUS` function serves as the primary function in the algorithm, implementing the novel decomposition method for brain network dynamic connectivity matrices using low-rank structure with uniform sparsity and temporal group lasso. Users can provide the group-level concatenated dynamic connectivity data as input, along with specifying parameters such as the number of connectivity traits to extract, the number of nodes under consideration, and the total number of subjects in the study, etc. The output of the `dynaLOCUS` function is a list comprising 3 components:
 
