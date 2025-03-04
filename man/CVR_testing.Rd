@@ -7,9 +7,9 @@
 CVR_testing(U, X, z, lambda1 = NULL, lambda2 = NULL)
 }
 \arguments{
-\item{U}{A numeric matrix of canonical weights (p x m).}
+\item{U}{A numeric matrix of canonical weights (p x m), or results form Locus_CCA.}
 
-\item{X}{A numeric matrix of predictor variables (n x p).}
+\item{X}{A matrix of stacked brain connectivity of n subjects (n x p).}
 
 \item{z}{A numeric response vector (n x 1).}
 
