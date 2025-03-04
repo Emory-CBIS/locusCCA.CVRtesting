@@ -3,7 +3,7 @@
 #' This function performs locus_CCA with sparse regularization.
 #'
 #' @param X A matrix of stacked brain connectivity of n subjects (n x p).
-#' @param Y A matrix of clinical/behavior varibles of n subjects (n x q).
+#' @param Y A matrix of clinical/behavior varibles of n subjects corresponding to each row in X (n x q).
 #' @param node An integer indicating the node size.
 #' @param m An integer specifying the number of canonical components.
 #' @param rho A numeric value regulating the penalty term applied to canonical weights on brain connectivity.
