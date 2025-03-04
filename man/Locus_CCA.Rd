@@ -18,9 +18,9 @@ Locus_CCA(
 )
 }
 \arguments{
-\item{X}{A matrix of predictor variables (n x p).}
+\item{X}{A matrix of stacked brain connectivity of n subjects (n x p).}
 
-\item{Y}{A matrix of response variables (n x m).}
+\item{Y}{A matrix of clinical/behavior varibles of n subjects corresponding to each row in X (n x q).}
 
 \item{node}{An integer indicating the node size.}
 
