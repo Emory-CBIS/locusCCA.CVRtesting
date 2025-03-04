@@ -135,7 +135,7 @@ The `Locus_CCA` function serves as the primary function in the algorithm, implem
 CVR_testing(U, X, z, lambda1 = NULL, lambda2 = NULL)
 ```
 
-- `U`: The canonical correlation directions on brain connectivity with dimension $p \times m$, i.e., U from Locus_CCA.
+- `U`: The canonical correlation directions on brain connectivity with dimension $p \times m$, i.e., `U` from `Locus_CCA`.
 - `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network.
 - `z`: A numeric response vector (n x 1).
 - `lambda1`: A numeric value for Lasso penalty in coefficients estimation. If `NULL`, it is determined using cross-validation.
@@ -145,119 +145,26 @@ The `CVR_testing` function characterize the significance of each  brain connecti
 
 - `T_stats`: A length m vector containing the test statistics for each canonical variants of brain connectivity. Each entry  follows a asymptotic normal distribution. 
 
-function serves as a valuable guide for tuning the parameters $\phi$ and $\rho`. However, it is worth noting that in certain datasets, the choice may not be straightforward solely based on BIC. Tuning parameters can also be selected based on visual inspection of the extracted connectivity traits to achieve the desired level of sparsity and appealing neuroscience interpretation. The function outputs a list comprising two components:
 
-- `bic_tab`: A dataframe containing BIC values per $\phi$ and $\rho$.
-- `results`: A list of dyna-LOCUS output, if `save_output` is `TRUE`.
 
 ### 3. lambda_selection function
 
-```         
-lambda_selection(Y, q, V, n_subject, preprocess = TRUE, penalty_S = "L1", phi = 2, rho = 0.9, 
-lambda_grid_search = c(NA, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1), maxIteration = 100, espli1 = 0.01, espli2 = 0.05, demean = TRUE, save_output = FALSE)
+```
+BIC_cal(X, Y, U, V)        
 ```
 
--   `Y`: Group-level dynamic connectivity data represented as a matrix of dimension $N \times p$, where $N$ denotes the number of subjects multiplied by the number of time points, and $p$ represents the number of edges in the connectivity network.
--   `q`: The number of connectivity traits to extract.
--   `V`: The number of nodes. Note that $p$ needs to be equal to $\frac{(V-1)V}{2}$.
--   `n_subject`: The total number of subjects in the study.
--   `preprocess`: If `TRUE`, the concatenated group-level connectivity data will be preprocessed. Defaults to `TRUE`.
--   `penalty_S`: The option for the penalization function for the sparsity regularization for the connectivity traits. Users can choose `"NULL"`, `"L1"`, or `"SCAD"`. Defaults to `"L1"`. 
--   `phi`: A tuning parameter for the element-wise penalty on `S`. Defaults to 2.
--   `rho`: A proportional tuning parameter ranging from 0 to 1 for the adaptive selection method to determine the number of ranks for modeling each connectivity trait. The value of `rho` represents the closeness of the connectivity traits estimated with and without the low-rank structure. A higher value of `rho` will lead to a higher rank. Defaults to 0.9.
--   `lambda_grid_search`: Grid search candidates of tuning parameter $\lambda$. Defaults to `c(NA, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1)`, where `NA` represents no temporal smoothness penalty.
--   `maxIteration`: The maximum number of iterations. Defaults to 100.
--   `espli1`: A number describing the tolerance for change on `A`.
--   `espli2`: A number describing the tolerance for change on `S`.
--   `demean`: If `TRUE`, performs demeaning on the input data. Defaults to `TRUE`.
--   `save_output`: If `TRUE`, saves the output. Defaults to `FALSE`.
+- `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network.
+- `Y`: Group-level clinical/behavioral subscale scores for the same subjects in `X`, the dimension is $n\times q$.
+- `U`: The canonical correlation directions on brain connectivity with  dimension $p \times m$, or the outcome `U` from `Locus_CCA`.
+- `V`: The canonical correlation directions on subscale scores with  dimension $q \times m$, or the outcome `V` from `Locus_CCA`.
 
-The `lambda_selection` function serves as a valuable guide for tuning the parameter $\lambda$ with fixed values of $\phi$ and $\rho$. The function outputs a list comprising 3 components:
+`BIC_cal function serves as a valuable guide for tuning the parameters $\rho$.  The function outputs a single BIC value.  A model with lower BIC value is prefered. However, it is worth noting that in certain datasets, the choice may not be straightforward solely based on BIC. Tuning parameters can also be selected based on visual inspection of the extracted connectivity traits to achieve the desired level of sparsity and appealing neuroscience interpretation.
 
--   `selected_lambda`: The $\lambda$ value that achieves the minimal goodness-of-fit.
--   `goodness_of_fit`: Goodness-of-fit values for each $\lambda$ with no temporal smoothness penalty.
--   `results`: A list of dyna-LOCUS outputs, if `save_output` is set to `TRUE`.
 
-### 4. reliability_index function
-
-```         
-reliability_index(Y, q_choices, V, n_subject, preprocess = TRUE, penalty_S = "L1", 
-phi = 2, rho = 0.9, penalty_A = TRUE, lambda = 0.1, maxIteration = 100, espli1 = 0.01, espli2 = 0.05, silent = TRUE, demean = TRUE,seeds = 1:50)
-```
-
--   `Y`: Group-level dynamic connectivity data is represented as a matrix of dimension $NT \times p$, where $NT$ denotes the number of subjects multiplied by the number of time points, and $p$ represents the number of edges in the connectivity network.
--   `q_choices`: A vector of integers representing different choices for the number of connectivity traits to extract.
--   `V`: The number of nodes. Note that $p$ needs to be equal to $(V-1)V/2$.
--   `n_subject`: The total number of subjects in the study.
--   `preprocess`: If `TRUE`, the concatenated group-level connectivity data will be preprocessed. Defaults to `TRUE`.
--   `penalty_S`: The option for the penalization function for the sparsity regularization for the connectivity traits. Users can choose `"NULL"`, `"L1"`, or `"SCAD"`. Defaults to `"L1"`. 
--   `phi`: A tuning parameter for the element-wise penalty on `S`. Defaults to 2.
--   `rho`: A proportional tuning parameter ranging from 0 to 1 for the adaptive selection method to determine the number of ranks for modeling each connectivity trait. The value of `rho` represents the closeness of the connectivity traits estimated with and without the low-rank structure. A higher value of `rho` will lead to a higher rank. Defaults to 0.9.
--   `penalty_A`: The option for the temporal smoothness regularization for the trait loadings. If `TRUE`, temporal smoothness penalty is included in the optimization function to encourage similarity in the trait loadings in adjacent time windows. Defaults to `TRUE`.
--   `lambda`: A numeric tuning parameter for the temporal smooth penalty on `A`. Defaults to 0.1.
--   `maxIteration`: The maximum number of iterations for the dyna-LOCUS algorithm.
--   `espli1`: A number describing the tolerance for change on `A`.
--   `espli2`: A number describing the tolerance for change on `S`.
--   `silent`: Logical, if `FALSE`, prints out the penalty added on `A` and `S`.
--   `demean`: Logical, if `TRUE`, demeans the data before processing.
--   `seeds`: A vector of integers to set seeds for bootstrap sampling, default is 1:50.
-
-The `reliability_index` function calculates the reliability index and reproducibility (RI) for the dyna-LOCUS method based on input choices of $q$. The output of the `dynaLOCUS` function is a list comprising 2 components:
-
--   `reliability`: A list where each component corresponds to a different choice of $q$. Each component is of length $q$, representing the reliability index for each trait based on that choice of $q$.
--   `RI`: A list where each component corresponds to a different choice of $q$. Each component is of length $q$, representing the reproducibility (RI) for each trait based on that choice of $q$.
-
-### 5. energy_var_cal function
-
-```         
-energy_var_cal(A, q, t_length)
-```
-
--   `A`: The loading matrix.
--   `q`: The number of connectivity traits.
--   `t_length`: The length of the time series per subject.
-
-The function calculates the energy and variation for connectivity traits. The output of the function is a list comprising 2 components:
-
--   `trait_energy`: A vector representing the mean log-transformed energy of each connectivity trait across subjects.
--   `trait_variation`: A vector representing the mean variation of each connectivity trait across subjects.
-
-### 6. ccf_calculation function
-
-```         
-ccf_calculation(A, q, n_subject)
-```
-
--   `A`: The trait loading matrix.
--   `q`: The number of connectivity traits.
--   `n_subject`: The number of subjects.
-
-The function calculates cross-correlation function (CCF) for connectivity traits. The output of the function is an array:
-
--   `ccf_value_array`: An array containing the final CCF values for each pair of connectivity traits.
-
-### 7. dFC_states function
-
-```         
-dfC_states(A, S, n_subject, q, n_examplers = 10, gap = 5, seed = 1, n_centers)
-```
-
--   `A`: The loading matrix.
--   `S`: The dyna-LOCUS result connectivity traits.
--   `n_subject`: The total number of subjects in the study.
--   `q`: The number of connectivity traits.
--   `n_examplers`: The number of exemplars to select from each subject for clustering initialization. Default is 10.
--   `gap`: The gap between selected exemplars in time points. Default is 5.
--   `seed`: An integer for setting the random seed to ensure reproducibility. Default is 1.
--   `n_centers`: The number of centers (or clusters) to use in k-means clustering.
-
-This function retrieves whole-brain dynamic functional connectivity (dFC) states based on the results from the dyna-LOCUS method. The output of the function is a matrix:
-
--   `Y_construct`: A matrix of reconstructed connectivity patterns based on the clustered loading matrix. Each row of the matrix represents the upper triangular part of a dFC state.
 
 ## IV. A Toy Example
 
-In this section, we provide a toy example to demonstrate the implementation of the package. The toy example data contains dynamic functional connectivity (dFC) matrices from 20 subjects, each with 16 dFC matrices across time. Each dFC matrix is symmetric with dimensions of $V \times V$, where $V = 264$ is the number of nodes. These dFC matrices are generated based on connectivity traits extracted from real imaging data, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). The input $Y$ matrix would be of dimension $NT \times p$, where $N = 20$ subjects, $T = 16$ time windows, and $p = V(V-1)/2$ edges. The first 16 rows of the $Y$ matrix contain the concatenated dFC matrices from subject 1, and the data in the following rows are arranged similarly for the subsequent subjects.
+In this section, we provide a toy example to demonstrate the implementation of the package. The toy example data contains simulated  connectivity (dFC) matrices from 20 subjects, each with 16 dFC matrices across time. Each dFC matrix is symmetric with dimensions of $V \times V$, where $V = 264$ is the number of nodes. These dFC matrices are generated based on connectivity traits extracted from real imaging data, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). The input $Y$ matrix would be of dimension $NT \times p$, where $N = 20$ subjects, $T = 16$ time windows, and $p = V(V-1)/2$ edges. The first 16 rows of the $Y$ matrix contain the concatenated dFC matrices from subject 1, and the data in the following rows are arranged similarly for the subsequent subjects.
 
 **How to prepare the input matrix Y from dFC matrices**: Suppose we have $T$ dFC matrices from each of the $N$ subjects, where each matrix is a $V \times V$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each dFC matrix and convert them into a row vector of length $p = \frac{(V-1)V}{2}$. We then concatenate these vectors across time and subjects to obtain the group dFC data $Y$, which has dimensions $NT \times p$.
 
