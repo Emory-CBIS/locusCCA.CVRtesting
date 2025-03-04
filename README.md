@@ -129,16 +129,15 @@ The `Locus_CCA` function serves as the primary function in the algorithm, implem
 -   `CC`: A m by m matrix. Canonical correlations between the each corresponding projection, i.e the correlation between columns in $XU$ and $YV$.
 -   `R`: A list of rank $R_j$, where `R[j]` contains the rank of the $i$th sub connectivity matrix.
 
-### 2. bic_selection function
+### 2. CVR_testing function
 
 ```         
-bic_selection(Y, q, V, n_subject, preprocess = TRUE, penalty = "L1", 
-phi_grid_search = seq(1, 2, 0.2), rho_grid_search = c(0.9), maxIteration = 100, espli1 = 0.01, espli2 = 0.05, demean = TRUE, save_output = FALSE)
+CVR_testing(U, X, z, lambda1 = NULL, lambda2 = NULL)
 ```
 
-- `Y`: Group-level dynamic connectivity data is represented as a matrix of dimension $NT \times p$, where $NT$ denotes the number of subjects multiplied by the number of time points, and $p$ represents the number of edges in the connectivity network.
-- `q`: The number of connectivity traits to extract.
-- `V`: The number of nodes. Note that $p$ needs to be equal to $(V-1)V/2$.
+- `U`: The canonical correlation directions on brain connectivity with dimension $p \times m$, i.e., U from Locus_CCA.
+- `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network.
+- `z`: A numeric response vector (n x 1).
 - `n_subject`: The total number of subjects in the study.
 - `preprocess`: If `TRUE`, the concatenated group-level connectivity data will be preprocessed. Defaults to `TRUE`.
 - `penalty`: The option for the penalization function for the sparsity regularization for the connectivity traits. Users can choose "NULL", "L1", or "SCAD" (smoothly clipped absolute deviation), introduced by [Fan and Li, 2021](https://www.jstor.org/stable/3085904). Defaults to "L1".
