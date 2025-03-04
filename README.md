@@ -126,7 +126,7 @@ The `Locus_CCA` function serves as the primary function in the algorithm, implem
 
 -   `U`: The canonical correlation directions on brain connectivity with  dimension $p \times m$.
 -   `V`: The canonical correlation directions on subscale scores with  dimension $q \times m$.
--   `CC`: A m by m matrix. Canonical correlations between the each corresponding projection, i.e the correlation between columns in $XU$ and $YV$.
+-   `CC`: A m by m matrix. Canonical correlations between the each corresponding projection, i.e the pairwise correlations between columns in $XU$ and $YV$.
 -   `R`: A list of rank $R_j$, where `R[j]` contains the rank of the $i$th sub connectivity matrix.
 
 ### 2. CVR_testing function
@@ -138,18 +138,14 @@ CVR_testing(U, X, z, lambda1 = NULL, lambda2 = NULL)
 - `U`: The canonical correlation directions on brain connectivity with dimension $p \times m$, i.e., U from Locus_CCA.
 - `X`: Group-level brain connectivity data represented as a matrix of dimension $n \times p$, where $n$ denotes the number of subjects, and $p$ represents the number of edges in the connectivity network.
 - `z`: A numeric response vector (n x 1).
-- `n_subject`: The total number of subjects in the study.
-- `preprocess`: If `TRUE`, the concatenated group-level connectivity data will be preprocessed. Defaults to `TRUE`.
-- `penalty`: The option for the penalization function for the sparsity regularization for the connectivity traits. Users can choose "NULL", "L1", or "SCAD" (smoothly clipped absolute deviation), introduced by [Fan and Li, 2021](https://www.jstor.org/stable/3085904). Defaults to "L1".
-- `phi_grid_search`: Grid search candidates for the tuning parameter $\phi$ for the penalty on connectivity traits. Defaults to `seq(1, 2, 0.2)`.
-- `rho_grid_search`: Grid search candidates for the tuning parameter for the adaptive selection method to determine the number of ranks for modeling each connectivity trait. Defaults to `c(0.9)`.
-- `maxIteration`: The maximum number of iterations. Defaults to `100`.
-- `espli1`: A number describing the tolerance for change on A.
-- `espli2`: A number describing the tolerance for change on S.
-- `demean`: If `TRUE`, performs demeaning on the input data. Defaults to `TRUE`.
-- `save_output`: If `TRUE`, saves the output. Defaults to `FALSE`.
+- `lambda1`: A numeric value for Lasso penalty in coefficients estimation. If `NULL`, it is determined using cross-validation.
+- `lambda2`: A numeric value for constrained optimization in score calculation. If `NULL`, it is  determined by our procedure.
 
-The `bic_selection` function serves as a valuable guide for tuning the parameters $\phi$ and $\rho`. However, it is worth noting that in certain datasets, the choice may not be straightforward solely based on BIC. Tuning parameters can also be selected based on visual inspection of the extracted connectivity traits to achieve the desired level of sparsity and appealing neuroscience interpretation. The function outputs a list comprising two components:
+The `CVR_testing` function characterize the significance of each  brain connectivity canonical variant (**XU**) in explaining the one overall disorder or behavior score.  The function takes the arguments including canonical correlation directions on brain connectivity (estimated U from Locus_CCA), the group-level brain connectivity data **X**, and an univariate response (usually overall evaluation, such as ADHD overall score). The function outputs the testing statsitics of CVR testing of all m canonical components. 
+
+- `T_stats`: A length m vector containing the test statistics for each canonical variants of brain connectivity. Each entry  follows a asymptotic normal distribution. 
+
+function serves as a valuable guide for tuning the parameters $\phi$ and $\rho`. However, it is worth noting that in certain datasets, the choice may not be straightforward solely based on BIC. Tuning parameters can also be selected based on visual inspection of the extracted connectivity traits to achieve the desired level of sparsity and appealing neuroscience interpretation. The function outputs a list comprising two components:
 
 - `bic_tab`: A dataframe containing BIC values per $\phi$ and $\rho$.
 - `results`: A list of dyna-LOCUS output, if `save_output` is `TRUE`.
