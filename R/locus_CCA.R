@@ -142,7 +142,7 @@ Locus_CCA <- function(X, Y, node, m, rho, gamma = 2.1,
       } else if (imput_method == "Max") {
         remat = Ltrinv(U_thresh[, j], voxel, F) + diag(apply(abs(Ltrinv(U_thresh[, j], voxel, F)), 2, max))
       } else if (imput_method == "No") {
-        remat = Ltrinv(U_thresh[, j], voxel, F)
+        remat = Ltrinv(U_thresh[, j], node, F)
       } else {
         stop("No valid imputation method provided!")
       }
