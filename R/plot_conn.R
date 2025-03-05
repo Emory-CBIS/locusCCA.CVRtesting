@@ -31,7 +31,7 @@ original_label$label[original_label$label%in%c("DMN R","DMN P","DMN F","DMN L")]
  plot_network_heatmap1(mat / max(abs(mat)), 
                         network_information = original_label, 
                         network_label_vars = "label", 
-                        network_line_thickness = 0.5)
+                        network_line_thickness = 0.5, network_label_size =4)
 }
 
 # conn - P x P connectivity matrix
