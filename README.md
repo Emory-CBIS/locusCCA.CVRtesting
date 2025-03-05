@@ -165,22 +165,81 @@ BIC_cal(X, Y, U, V)
 ## IV. A Toy Example
 
 In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
-Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 100$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
+Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 300$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
 
 ``` r
 # library 
 library(locusCCA.CVRtesting)
 library(MASS)  # For ginv() function in data generating only
 # generate the toy example data 
+S_real_agg <- readRDS(system.file("data", "S_real_agg.rds", package = "locusCCA.CVRtesting"))
+  original_Y <- readRDS(system.file("data", "original_Y.rds", package = "locusCCA.CVRtesting"))
+
+  # Define parameters
+  n <- 300
+  q <- 10
+  p <- ncol(S_real_agg)
+  m <- 6
+  node <- 264
+  # Simulate X and Y using known structures
+  # Generate synthetic signals based on the real dataset
+  U <- t(S_real_agg[ 1:m,]) / 1000
+  sample1 <- sample(2:13, q)
+  eigen_Y <- eigen(t(original_Y[, sample1]) %*% original_Y[, sample1])
+  V <- eigen_Y$vectors[ sample(1:10, q),sample(1:10, m)]
+
+  # Simulate X, Y, and z using known structures
+  set.seed(111)
+  fx <- matrix(rnorm(n * m, 0, 1), nrow = n)
+  fy <- fx + matrix(rnorm(n * m, 0, 0.6), nrow = n)
+  X <- 500 * fx[, 1:m] %*% (ginv(U)) + matrix(rnorm(n * p, 0, 0.01), nrow = n)
+  Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
+  weights = rnorm(2,1,0.1)
+  component = sample(1:6,2)
+  beta =2000*apply((U[,component] %*% diag(weights)), 1, sum)
+  z = X %*% beta + rnorm(n,sd = 0.1)
 
 
+
+  
 # check the dimension
+dim(X)
 dim(Y)
+
+## Run Locus-CCA 
+result <- Locus_CCA(X, Y, node = node, m = m, rho = 0.008,
+                      penalt = "L1", proportion = 0.95,
+                      silent = FALSE, tol = 1e-3)
+
+## Run CVR testing 
+scores <- CVR_testing(result$U, X, z)
+
 ```
 
-We propose to select the number of connectivity traits $q$ to extract based on the reliability of the extracted traits evaluated via the `reliability_index()` function. Note that the function can be time-consuming as it requires two layers of for loops. In this toy example, we illustrate with 3 bootstrap samples for each choice of $q$. In real data analysis, please consider using at least 50 bootstrap samples (i.e., `seeds = 1:50`).
+We propose to select the number of canonical correlation components  $m$  based on the  number of PCs needed to explain 95% variance of **Y**.
+
+```r
+determine_pca_components <- function(Y, variance_threshold = 0.95) {
+  # Perform PCA
+  pca_result <- prcomp(Y, center = TRUE, scale. = TRUE)
+  
+  # Calculate proportion of variance explained
+  variance_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+  
+  # Compute cumulative variance explained
+  cumulative_variance <- cumsum(variance_explained)
+  
+  # Find the number of components needed
+  num_components <- min(which(cumulative_variance >= variance_threshold))
+  
+  return(list(num_components = num_components,
+              cumulative_variance = cumulative_variance))
+}
+determine_pca_components(Y)
+```
 
 ``` r
+
 # calculate reliability
 output = reliability_index(Y, q_choices = 2:4, V = 264, n_subject = 20, seeds = 1:3) 
 
