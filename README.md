@@ -175,45 +175,34 @@ library(MASS)  # For ginv() function in data generating only
 S_real_agg <- readRDS(system.file("data", "S_real_agg.rds", package = "locusCCA.CVRtesting"))
   original_Y <- readRDS(system.file("data", "original_Y.rds", package = "locusCCA.CVRtesting"))
 
-  # Define parameters
-  n <- 300
-  q <- 10
-  p <- ncol(S_real_agg)
-  m <- 6
-  node <- 264
-  # Simulate X and Y using known structures
-  # Generate synthetic signals based on the real dataset
-  U <- t(S_real_agg[ 1:m,]) / 1000
-  sample1 <- sample(2:13, q)
-  eigen_Y <- eigen(t(original_Y[, sample1]) %*% original_Y[, sample1])
-  V <- eigen_Y$vectors[ sample(1:10, q),sample(1:10, m)]
+# Define parameters
+n <- 300
+q <- 10
+p <- ncol(S_real_agg)
+m <- 6
+node <- 264
+# Simulate X and Y using known structures
+# Generate synthetic signals based on the real dataset
+U <- t(S_real_agg[ 1:m,]) / 1000
+sample1 <- sample(2:13, q)
+eigen_Y <- eigen(t(original_Y[, sample1]) %*% original_Y[, sample1])
+V <- eigen_Y$vectors[ sample(1:10, q),sample(1:10, m)]
 
-  # Simulate X, Y, and z using known structures
-  set.seed(111)
-  fx <- matrix(rnorm(n * m, 0, 1), nrow = n)
-  fy <- fx + matrix(rnorm(n * m, 0, 0.6), nrow = n)
-  X <- 500 * fx[, 1:m] %*% (ginv(U)) + matrix(rnorm(n * p, 0, 0.01), nrow = n)
-  Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
-  weights = rnorm(2,1,0.1)
-  component = sample(1:6,2)
-  beta =2000*apply((U[,component] %*% diag(weights)), 1, sum)
-  z = X %*% beta + rnorm(n,sd = 0.1)
-
-
+# Simulate X, Y, and z using known structures
+set.seed(111)
+fx <- matrix(rnorm(n * m, 0, 1), nrow = n)
+fy <- fx + matrix(rnorm(n * m, 0, 0.6), nrow = n)
+X <- 500 * fx[, 1:m] %*% (ginv(U)) + matrix(rnorm(n * p, 0, 0.01), nrow = n)
+Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
+weights = rnorm(2,1,0.1)
+component = sample(1:6,2)
+beta =2000*apply((U[,component] %*% diag(weights)), 1, sum)
+z = X %*% beta + rnorm(n,sd = 0.1)
 
   
 # check the dimension
 dim(X)
 dim(Y)
-
-## Run Locus-CCA 
-result <- Locus_CCA(X, Y, node = node, m = m, rho = 0.008,
-                      penalt = "L1", proportion = 0.95,
-                      silent = FALSE, tol = 1e-3)
-
-## Run CVR testing 
-scores <- CVR_testing(result$U, X, z)
-
 ```
 
 We propose to select the number of canonical correlation components  $m$  based on the  number of PCs needed to explain 95% variance of **Y**.
@@ -238,135 +227,50 @@ determine_pca_components <- function(Y, variance_threshold = 0.95) {
 determine_pca_components(Y)
 ```
 
-``` r
-
-# calculate reliability
-output = reliability_index(Y, q_choices = 2:4, V = 264, n_subject = 20, seeds = 1:3) 
-
-# extract reliability
-reliability = output$reliability
-
-# calculate the average reliability among latent connectivity traits for each choice of q
-lapply(reliability, mean)
-```
-
-The results are
-
-```         
-$`q = 2`
-[1] 0.4370009
-
-$`q = 3`
-[1] 0.6598781
-
-$`q = 4`
-[1] 0.7318346
-```
-
-In this toy example, we consider possible values for $q$ of 2, 3, and 4. The reliability index increases considerably from $q = 2$ to $q = 3$, but only slightly when further increasing from $q = 3$ to $q = 4$. Furthermore, the reliability index for $q = 3$ already indicates substantial reliability. Therefore, we decide to select $q = 3$.
-
-Next, we proceed to use the BIC-type criterion to select the hyperparameters $\rho$ and $\phi$. In this toy example, we fix $\rho$ at 0.9 and explore various values for $\phi$ to observe their impact on the BIC value. Our experiments with several real imaging datasets suggest the range of 0.5 to 3.5 works well for $\phi$. We recommend initially considering the range $seq(0.5, 3.5, 0.5)$ to evaluate the BIC.
+Next, we proceed to use the BIC-type criterion to select the hyperparameters `rho`. In this toy example, we  explore various values for $\rho$ to observe their impact on the BIC value. We recommend initially considering the range $seq(0, 0.05, 0.005)$ to evaluate the BIC.
 
 ``` r
 # bic selection
-bic_output = bic_selection(Y, q = 3, V = 264, n_subject = 20,
-                           phi_grid_search = seq(0.1, 1, 0.2), rho_grid_search = 0.9) 
-# retrive the results
-bic_tab = bic_output$bic_tab
-
-# visuliazation
-library(ggplot2)
-ggplot(bic_tab, aes(x = phi, y = log(bic_value))) +
-  geom_line() +
-  labs(x = "phi", y = "Log BIC") +
-  theme_bw() +
-  theme(text = element_text(size = 14))
+rho_seq = seq(0, 0.05, 0.005)
+BIC_list = c()
+for (rho in rho_seq) {
+    result_bic = Locus_CCA(X, Y, node = node, m = m, rho =rho,
+                      penalt = "L1", proportion = 0.95,
+                      silent = FALSE, tol = 1e-3)
+  BIC_list = c(BIC_list,BIC_cal(X,Y,result_bic$U,result_bic$V))}
+rho = rho_seq(which.min(BIC_list))
 ```
 
 
-We select $\phi = 0.5$ and $\rho = 0.9$ based on the BIC-type criterion. It is worth noting that the BIC criterion serves as a valuable guide in selecting the tuning the parameters $\phi$ and $\rho$. However, the choice may not always be straightforward solely based on BIC in practice. Therefore, besides the BIC criterion, users can also employ supplementary selection strategies, such as specifying tuning parameters based on the desired sparsity level and the neuroscience interpretations they aim to achieve in the extracted connectivity traits.
+It is worth noting that the BIC criterion serves as a valuable guide in selecting the tuning the parameters $\rho$. However, the choice may not always be straightforward solely based on BIC in practice. Therefore, besides the BIC criterion, users can also employ supplementary selection strategies, such as specifying tuning parameters based on the desired sparsity level and the neuroscience interpretations they aim to achieve in the extracted connectivity traits.
 
-Next, we determine the value of $\lambda$ by evaluating the goodness of fit.
+
+
+Next, we perform the Locus-CCA using the parameters we have just selected.
 
 ``` r
-# lambda selection
-goodness_of_fit = lambda_selection(Y, q = 3, V = 264, n_subject = 20, phi = 0.5, rho = 0.9,
-                                   lambda_grid_search = c(NA, 1e-4, 1e-3, 1e-2, 1e-1, 5e-1))
-goodness_of_fit$selected_lambda
-# [1] 0.01
+## Run Locus-CCA 
+result <- Locus_CCA(X, Y, node = node, m = m, rho = rho,
+                      penalt = "L1", proportion = 0.95,
+                      silent = FALSE, tol = 1e-3)
+print(dim(result$U)) #p by m
+print(dim(result$V)) #q by m
+print(result$CC) #canonical correlation matrix
+```
+We visualize the canonical direction weights on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
+
+```r
+plot_conn(Ltrinv(result$U,node,F))
 ```
 
-The results show that the selected $\lambda = 0.01$.
+The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
 
-Next, we perform the dyna-LOCUS decomposition using the parameters we have just selected.
-
-``` r
-# dyna-LOCUS decomposition
-result = dynaLOCUS(Y, q = 3, V = 264, n_subject = 20, 
-                   phi = 0.5, rho = 0.9, penalty_A = TRUE, lambda = 0.01)
-# [1] "Finished!"
+## Run CVR testing 
+```r
+T_stats <- CVR_testing(result$U, X, z)
+p.adjust(2*(1-pnorm(abs(T_stats))),,method='fdr') #adjusted p-values using FDR correction to correct multiple (m) testing.
 ```
 
-We visualize the connectivity traits based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. Please ensure that packages `ggplot2`, `gridExtra`, and `lattice` are installed, as they are required for plotting.
-
-``` r
-source(url("https://raw.githubusercontent.com/Emory-CBIS/dynaLOCUS_tutorial_data/main/visualization.R"))
-plots = lapply(1:3, function(j) {
-  levelplotX(result$S[j,], maint = paste0("Trait ", j))
-})
-# arrange the plots in a grid layout
-g = do.call(arrangeGrob, c(plots, nrow = 1, ncol = 3))
-# store the plot
-ggsave(filename = "traits.png", g, width = 15, height = 5)
-```
 
 <img src="fig/traits.png" width="650" align="center"/>
 
-For studies with large sample sizes and brain atlases involving a large number of nodes, users can use the alternative estimation algorithm to accelerate computation in learning dyna-LOCUS by specifying the `speed_up = TRUE` option. We present the code and result as follows:
-
-``` r
-# dyna-LOCUS decomposition with faster computation
-result = dynaLOCUS(Y, q = 3, V = 264, n_subject = 20, speed_up = TRUE,
-                   phi = 0.5, rho = 0.9, penalty_A = TRUE, lambda = 0.01)
-# [1] "Finished!"
-plots = lapply(1:3, function(j) {
-  levelplotX(result$S[j,], maint = paste0("Trait ", j))
-})
-# arrange the plots in a grid layout
-g = do.call(arrangeGrob, c(plots, nrow = 1, ncol = 3))
-ggsave(filename = "traits_speed.png", g, width = 15, height = 5)
-```
-
-
-The functions have been thoroughly tested with PNC data. Due to the variability across different datasets, users are encouraged to try out both the `speed_up = TRUE` and `speed_up = FALSE` options to see which works good for their analysis. If any problems arise, please feel free to reach out for further assistance.
-
-After extracting the connectivity traits, we can evaluate the reproducibility of the extracted traits.
-
-``` r
-# calculate reproducibility
-output = reliability_index(Y, q_choices = 3, V = 264, n_subject = 20, seeds = 1:5, 
-                           phi = 0.5, lambda = 0.01) 
-# extract reproducibility
-output$RI
-# $`q = 3`
-# [1] 0.6626315 0.9493696 0.9999014
-```
-
-For each connectivity trait, we can evaluate its energy and variation based on its temporal trait loadings:
-
-``` r
-# energy and variation
-energy_var_cal(A = result$A, q = 3, t_length = 16)
-# $trait_energy
-# [1] -6.1659538 -0.8114545 -5.4254209
-# 
-# $trait_variation
-# [1] 0.0008743673 0.0096093112 0.0010382041
-```
-
-Furthermore, we can use the cross-correlation function (CCF) function to evaluate the synchronization between traits for each subject:
-
-```         
-# ccf calculation
-ccf_calculation(A = result$A, q = 3, n_subject = 20)
-```
