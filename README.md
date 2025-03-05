@@ -147,7 +147,7 @@ The `CVR_testing` function characterize the significance of each  brain connecti
 
 
 
-### 3. lambda_selection function
+### 3. BIC_cal function
 
 ```
 BIC_cal(X, Y, U, V)        
@@ -164,18 +164,15 @@ BIC_cal(X, Y, U, V)
 
 ## IV. A Toy Example
 
-In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on real estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
-Specifically, we generated connectivity matrices based on the real connectivity traits , using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $V \times V$, where $V = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $N = 100$ subjects and $p = V(V-1)/2$ edges. The first 16 rows of the $Y$ matrix contain the concatenated dFC matrices from subject 1, and the data in the following rows are arranged similarly for the subsequent subjects.
-
-**How to prepare the input matrix Y from dFC matrices**: Suppose we have $T$ dFC matrices from each of the $N$ subjects, where each matrix is a $V \times V$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each dFC matrix and convert them into a row vector of length $p = \frac{(V-1)V}{2}$. We then concatenate these vectors across time and subjects to obtain the group dFC data $Y$, which has dimensions $NT \times p$.
+In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
+Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 100$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
 
 ``` r
 # library 
-library(dynaLOCUS)
+library(locusCCA.CVRtesting)
+library(MASS)  # For ginv() function in data generating only
+# generate the toy example data 
 
-# import the toy example data from github
-# note: the data size is 85.1 MB, and loading may take around 22 seconds
-load(url("https://raw.githubusercontent.com/Emory-CBIS/dynaLOCUS_tutorial_data/main/Y.RData"))
 
 # check the dimension
 dim(Y)
