@@ -262,6 +262,8 @@ We visualize the canonical direction weights on brain connectivity  based on the
 ```r
 plot_conn(Ltrinv(result$U,node,F))
 ```
+<img src="fig/traits.png" width="650" align="center"/>
+
 
 The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
 
@@ -270,7 +272,4 @@ The CVR testing procedure is then implemented to evaluate the significance of ea
 T_stats <- CVR_testing(result$U, X, z)
 p.adjust(2*(1-pnorm(abs(T_stats))),,method='fdr') #adjusted p-values using FDR correction to correct multiple (m) testing.
 ```
-
-
-<img src="fig/traits.png" width="650" align="center"/>
 
