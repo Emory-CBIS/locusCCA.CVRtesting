@@ -260,9 +260,19 @@ print(result$CC) #canonical correlation matrix
 We visualize the canonical direction weights on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
 
 ```r
-plot_conn(Ltrinv(result$U,node,F))
+plots <- lapply(1:m, function(j){
+  conn_matrix <- Ltrinv(result$U[, j], node, FALSE)
+  plot_conn(conn_matrix)
+})
+
+combined_plot <- grid.arrange(grobs = plots, ncol = 3, nrow = 2)
+
+ggsave("combined_plot_with_margin.png", combined_plot,
+       width = 15, height = 10,
+       units = "in", dpi = 300, limitsize = FALSE)
+
 ```
-<img src="fig/traits.png" width="650" align="center"/>
+<img src="fig/combined_plot_with_margin.png" width="650" align="center"/>
 
 
 The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
