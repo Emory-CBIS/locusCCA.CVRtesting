@@ -167,6 +167,7 @@ BIC_cal(X, Y, U, V)
 In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
 Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 300$ subjects and $p = V(V-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
 
+### Data Generation
 ``` r
 # library 
 library(locusCCA.CVRtesting)
@@ -204,7 +205,8 @@ z = X %*% beta + rnorm(n,sd = 0.1)
 dim(X)
 dim(Y)
 ```
-
+### Parameter Selection
+#### Component number
 We propose to select the number of canonical correlation components  $m$  based on the  number of PCs needed to explain 95% variance of **Y**.
 
 ```r
@@ -227,6 +229,43 @@ determine_pca_components <- function(Y, variance_threshold = 0.95) {
 determine_pca_components(Y)
 ```
 
+The alternative way is to find number of canonical components needed to account for 95% of cumulative canonical correlation.
+```r
+select_components_by_canonical_correlation <- function(CC, threshold = 0.95) {
+  # CC: canonical correlation matrix from your model output (e.g., result$CC)
+
+  # Step 1: Extract canonical correlations
+  canonical_corrs <- diag(CC)
+
+  # Step 2: Take absolute values (canonical correlations are positive usually but just in case)
+  canonical_corrs <- abs(canonical_corrs)
+
+  # Step 3: Sort in decreasing order
+  canonical_corrs_sorted <- sort(canonical_corrs, decreasing = TRUE)
+
+  # Step 4: Cumulative sum normalized
+  cumulative_sum <- cumsum(canonical_corrs_sorted) / sum(canonical_corrs_sorted)
+
+  # Step 5: Find number of components needed
+  num_components <- min(which(cumulative_sum >= threshold))
+
+  return(list(
+    num_components = num_components,
+    cumulative_variance = cumulative_sum,
+    sorted_correlations = canonical_corrs_sorted
+  ))
+}
+
+# Example usage:
+# Suppose you have already run Locus-CCA with a large q = 20
+# result <- Locus_CCA(X, Y, voxel = 264, q = 20, lambda = 0.008)
+# Then you can select:
+
+selection_result <- select_components_by_canonical_correlation(result$CC, threshold = 0.95)
+cat("Number of components needed to explain at least 95% canonical correlation sum:", selection_result$num_components, "\n")
+```
+
+#### Tuning parameter
 Next, we proceed to use the BIC-type criterion to select the hyperparameters `rho`. In this toy example, we  explore various values for $\rho$ to observe their impact on the BIC value. We recommend initially considering the range $seq(0, 0.05, 0.005)$ to evaluate the BIC.
 
 ``` r
@@ -245,7 +284,7 @@ rho = rho_seq(which.min(BIC_list))
 It is worth noting that the BIC criterion serves as a valuable guide in selecting the tuning the parameters $\rho$. However, the choice may not always be straightforward solely based on BIC in practice. Therefore, besides the BIC criterion, users can also employ supplementary selection strategies, such as specifying tuning parameters based on the desired sparsity level and the neuroscience interpretations they aim to achieve in the extracted connectivity traits.
 
 
-
+#### Application
 Next, we perform the Locus-CCA using the parameters we have just selected.
 
 ``` r
