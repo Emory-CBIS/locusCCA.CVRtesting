@@ -205,7 +205,7 @@ z = X %*% beta + rnorm(n,sd = 0.1)
 dim(X)
 dim(Y)
 ```
-### Parameter Selection
+### Parameter Selection (Optional)
 #### Component number
 We propose to select the number of canonical correlation components  $m$  based on the  number of PCs needed to explain 95% variance of **Y**.
 
