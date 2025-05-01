@@ -164,15 +164,14 @@ BIC_cal(X, Y, U, V)
 
 ## IV. A Toy Example
 
-In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
-Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 300$ subjects and $p = node(node-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
+In this section, we provide an example to demonstrate the implementation of the package. We generated simulation example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
+Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 300$ subjects and $p = node(node-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores, and **z** is the univariate evaluation score. All files can be found in the folder "example_data/".
 
 ### Data loading
 ``` r
 # library 
 library(locusCCA.CVRtesting)
-library(MASS)  # For ginv() function in data generating only
-# Define parameters
+
 
 set.seed(111)
 
@@ -180,11 +179,13 @@ X=readRDS('example_data/X.rds')
 Y=readRDS('example_data/Y.rds')
 z=readRDS('example_data/z.rds')
 
-n <- 300
-q <- 10
+# Define parameters
+n <- nrow(X)
+q <- ncol(Y)
 p <- ncol(X)
-m <- 6
+m <- 6 # chosen
 node <- 264
+
 # check the dimension
 dim(X)
 dim(Y)
