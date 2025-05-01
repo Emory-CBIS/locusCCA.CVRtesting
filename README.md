@@ -303,9 +303,10 @@ We also visualize canonical direction weights on subscale scores using spider pl
 
 <img src="fig/V.png" width="650" align="center"/>
 
-The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
 
 ## Run CVR testing 
+
+The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
 ```r
 T_stats <- CVR_testing(result$U, X, z)
 p.adjust(2*(1-pnorm(abs(T_stats))),,method='fdr') #adjusted p-values using FDR correction to correct multiple (m) testing.
