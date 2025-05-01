@@ -284,7 +284,7 @@ rho = rho_seq(which.min(BIC_list))
 It is worth noting that the BIC criterion serves as a valuable guide in selecting the tuning the parameters $\rho$. However, the choice may not always be straightforward solely based on BIC in practice. Therefore, besides the BIC criterion, users can also employ supplementary selection strategies, such as specifying tuning parameters based on the desired sparsity level and the neuroscience interpretations they aim to achieve in the extracted connectivity traits.
 
 
-#### Application
+### Application
 Next, we perform the Locus-CCA using the parameters we have just selected.
 
 ``` r
