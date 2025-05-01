@@ -300,7 +300,7 @@ combined_plot <- arrangeGrob(grobs = plots, ncol = 3, nrow = 2)
 <img src="fig/U.png" width="650" align="center"/>
 
 
-We also visualize canonical direction weights on subscale scores using spider plot. 
+We also visualize corresponding canonical direction weights on subscale scores using spider plots. 
 
 <img src="fig/V.png" width="650" align="center"/>
 
