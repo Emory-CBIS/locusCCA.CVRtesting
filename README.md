@@ -167,43 +167,28 @@ BIC_cal(X, Y, U, V)
 In this section, we provide a toy example to demonstrate the implementation of the package. We generated toy example data **X**, **Y**, and **z** based on  estimated lantent connectivity traits from real brain connectivity and real clinical subscale dataset on cognition. 
 Specifically, we generated connectivity matrices based on the real connectivity traits, using [Power's brain atlas](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3222858/). Each connectivity  trait is symmetric with dimensions of $node \times node$, where $node = 264$ is the number of nodes.   The input $X$ matrix would be of dimension $n \times p$, where $n = 300$ subjects and $p = node(node-1)/2$ edges. Suppose we have $n$ connectivity matrices from each of the $n$ subjects, where each matrix is a $node \times node$ symmetric matrix. To generate our input matrix $Y$, we use the `Ltrans()` function to extract the upper triangular elements of each  matrix and convert them into a row vector of length $p = \frac{(node-1)node}{2}$. We then concatenate these vectors across subjects to obtain the group connectivity data **X**. Similarly, **Y** is a matrix of subscale scores 
 
-### Data Generation
+### Data loading
 ``` r
 # library 
 library(locusCCA.CVRtesting)
 library(MASS)  # For ginv() function in data generating only
-# generate the toy example data 
-S_real_agg <- readRDS(system.file("data", "S_real_agg.rds", package = "locusCCA.CVRtesting"))
-  original_Y <- readRDS(system.file("data", "original_Y.rds", package = "locusCCA.CVRtesting"))
-
 # Define parameters
+
+set.seed(111)
+
+X=readRDS('example_data/X.rds')
+Y=readRDS('example_data/Y.rds')
+z=readRDS('example_data/z.rds')
+
 n <- 300
 q <- 10
-p <- ncol(S_real_agg)
+p <- ncol(X)
 m <- 6
 node <- 264
-# Simulate X and Y using known structures
-# Generate synthetic signals based on the real dataset
-U <- t(S_real_agg[ 1:m,]) / 1000
-sample1 <- sample(2:13, q)
-eigen_Y <- eigen(t(original_Y[, sample1]) %*% original_Y[, sample1])
-V <- eigen_Y$vectors[ sample(1:10, q),sample(1:10, m)]
-
-# Simulate X, Y, and z using known structures
-set.seed(111)
-fx <- matrix(rnorm(n * m, 0, 1), nrow = n)
-fy <- fx + matrix(rnorm(n * m, 0, 0.6), nrow = n)
-X <- 500 * fx[, 1:m] %*% (ginv(U)) + matrix(rnorm(n * p, 0, 0.01), nrow = n)
-Y <- fy[, 1:m] %*% ginv(V) + matrix(rnorm(n * q, 0, 0.01), nrow = n)
-weights = rnorm(2,1,0.1)
-component = sample(1:6,2)
-beta =2000*apply((U[,component] %*% diag(weights)), 1, sum)
-z = X %*% beta + rnorm(n,sd = 0.1)
-
-  
 # check the dimension
 dim(X)
 dim(Y)
+length(z)
 ```
 ### Parameter Selection (Optional)
 #### Component number
@@ -299,20 +284,24 @@ print(result$CC) #canonical correlation matrix
 We visualize the canonical direction weights on brain connectivity  based on the Power's atlas. Please note that the visualization code is prepared based on the Power's atlas, and please modify as needed if other atlases are used. 
 
 ```r
-plots <- lapply(1:m, function(j){
-  conn_matrix <- Ltrinv(result$U[, j], node, FALSE)
-  plot_conn(conn_matrix)
+plots <- lapply(1:6, function(j) {
+  conn_matrix <- Ltrinv(result$U[, j], 264, FALSE)
+  plot_conn(conn_matrix) +
+    ggtitle(paste("Trait", j)) +
+    theme(
+      plot.title = element_text(size = 16, face = "bold", hjust = 0.5)  # size & boldness
+    )
 })
 
-combined_plot <- grid.arrange(grobs = plots, ncol = 3, nrow = 2)
-
-ggsave("combined_plot_with_margin.png", combined_plot,
-       width = 15, height = 10,
-       units = "in", dpi = 300, limitsize = FALSE)
-
+# Arrange the 6 plots in a 2x3 grid
+combined_plot <- arrangeGrob(grobs = plots, ncol = 3, nrow = 2)
 ```
-<img src="fig/combined_plot_with_margin.png" width="650" align="center"/>
+<img src="fig/U.png" width="650" align="center"/>
 
+
+We also visualize canonical direction weights on subscale scores using spider plot. 
+
+<img src="fig/V.png" width="650" align="center"/>
 
 The CVR testing procedure is then implemented to evaluate the significance of each canonical variants in characterizing the overall response **z**, which gives T_stats of m canonical components. 
 
